@@ -1,9 +1,6 @@
 package com.sita.enterprises.TractorNow.service;
 
-import com.sita.enterprises.TractorNow.dto.auth.LoginRequest;
-import com.sita.enterprises.TractorNow.dto.auth.RegisterRequest;
-import com.sita.enterprises.TractorNow.dto.auth.SendOtpRequest;
-import com.sita.enterprises.TractorNow.dto.auth.VerifyOtpRequest;
+import com.sita.enterprises.TractorNow.dto.auth.*;
 
 
 public interface AuthService {
@@ -14,7 +11,12 @@ public interface AuthService {
 
     Object login(LoginRequest request);
 
-    Object sendOtp(SendOtpRequest request);
+    void sendPasswordResetOtp( ForgotPasswordRequest request);
 
+    String verifyPasswordResetOtp(VerifyOtpRequest request);
+
+    void resetPassword(String resetToken, ResetPasswordRequest request);
+    Object sendOtp(SendOtpRequest request);
     Object verifyOtp(VerifyOtpRequest request);
+
 }

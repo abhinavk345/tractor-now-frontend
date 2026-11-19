@@ -11,6 +11,11 @@ public class VerifyOtpRequest {
 
     private String email;
 
+    private String method;
+
+@NotBlank
+String identifier;
+
     @NotBlank
     @Pattern(
         regexp = "^[0-9]{6}$",

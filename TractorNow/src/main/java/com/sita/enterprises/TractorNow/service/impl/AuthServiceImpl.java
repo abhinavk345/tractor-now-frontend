@@ -1,21 +1,28 @@
 package com.sita.enterprises.TractorNow.service.impl;
+import com.sita.enterprises.TractorNow.dto.auth.*;
+import com.sita.enterprises.TractorNow.entity.PasswordResetChallenge;
 import com.sita.enterprises.TractorNow.entity.User;
-import com.sita.enterprises.TractorNow.dto.auth.LoginRequest;
-import com.sita.enterprises.TractorNow.dto.auth.RegisterRequest;
-import com.sita.enterprises.TractorNow.dto.auth.SendOtpRequest;
-import com.sita.enterprises.TractorNow.dto.auth.VerifyOtpRequest;
 
 import com.sita.enterprises.TractorNow.enums.UserRole;
+import com.sita.enterprises.TractorNow.exception.InvalidOtpException;
+import com.sita.enterprises.TractorNow.repository.PasswordResetChallengeRepository;
 import com.sita.enterprises.TractorNow.repository.UserRepository;
 import com.sita.enterprises.TractorNow.service.AuthService;
+import com.sita.enterprises.TractorNow.service.OtpDeliveryService;
 import com.sita.enterprises.TractorNow.service.OtpService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.Map;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +32,24 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final OtpService otpService;
+
+    private final PasswordResetChallengeRepository challengeRepository;
+
+    private final OtpDeliveryService otpDeliveryService;
+
+
+    private final SecureRandom secureRandom;
+
+    @Value("${app.password-reset.otp-secret}")
+    private String otpSecret;
+
+    private static final int OTP_EXPIRY_MINUTES = 5;
+
+    private static final int MAX_OTP_ATTEMPTS = 5;
+
+    private static final int RESEND_COOLDOWN_SECONDS = 30;
+
+    private static final int RESET_TOKEN_EXPIRY_MINUTES = 10;
 
     @Override
     public Object registerFarmer(RegisterRequest request) {
@@ -386,5 +411,428 @@ public class AuthServiceImpl implements AuthService {
 
     private boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
+    }
+
+    // =========================================
+    // 1. SEND OTP
+    // =========================================
+
+    @Override
+    @Transactional
+    public void sendPasswordResetOtp(
+            ForgotPasswordRequest request) {
+
+        String method = request.method().toUpperCase();
+
+        String identifier = normalizeIdentifier(
+                method,
+                request.identifier()
+        );
+
+        validateIdentifier(method, identifier);
+
+        LocalDateTime now = LocalDateTime.now();
+
+        // Find registered user
+        Optional<User> userOptional =
+                findUser(method, identifier);
+
+        // Find previous challenge
+        PasswordResetChallenge challenge =
+                challengeRepository
+                        .findFirstByMethodAndIdentifierOrderByIdDesc(method, identifier)
+                        .orElseGet(() -> {
+                            PasswordResetChallenge c =
+                                    new PasswordResetChallenge();
+
+                            c.setMethod(method);
+                            c.setIdentifier(identifier);
+                            c.setAttempts(0);
+
+                            return c;
+                        });
+
+        // Enforce resend cooldown
+        if (challenge.getLastSentAt() != null &&
+                challenge.getLastSentAt()
+                        .plusSeconds(RESEND_COOLDOWN_SECONDS)
+                        .isAfter(now)) {
+
+            return;
+        }
+
+        // Generate cryptographically secure OTP
+        String otp = generateOtp();
+
+        // Reset challenge state
+        challenge.setUserId(
+                userOptional.map(User::getId).orElse(null)
+        );
+
+        challenge.setOtpHash(hashOtp(otp));
+
+        challenge.setOtpExpiresAt(
+                now.plusMinutes(OTP_EXPIRY_MINUTES)
+        );
+
+        challenge.setLastSentAt(now);
+
+        challenge.setVerifiedAt(null);
+
+        challenge.setAttempts(0);
+
+        challenge.setResetTokenHash(null);
+
+        challenge.setResetTokenExpiresAt(null);
+
+        challenge.setUsedAt(null);
+
+        challengeRepository.saveAndFlush(challenge);
+
+        // Deliver OTP only if account exists
+        if (userOptional.isPresent()) {
+
+            if ("MOBILE".equals(method)) {
+                otpDeliveryService.sendSms(identifier, otp);
+            } else {
+                otpDeliveryService.sendEmail(identifier, otp);
+            }
+        }
+
+        // Same response for registered and unregistered accounts.
+        // Never log OTP or identifier.
+    }
+
+
+    // =========================================
+    // 2. VERIFY OTP
+    // =========================================
+
+    @Override
+    @Transactional(noRollbackFor = InvalidOtpException.class)
+    public String verifyPasswordResetOtp(
+            VerifyOtpRequest request) {
+
+        String method = request.getMethod().toUpperCase();
+
+        String identifier = normalizeIdentifier(
+                method,
+                request.getIdentifier()
+        );
+
+        LocalDateTime now = LocalDateTime.now();
+
+        PasswordResetChallenge challenge =
+                challengeRepository
+                        .findFirstByMethodAndIdentifierOrderByIdDesc(method, identifier)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "Invalid or expired OTP."
+                                )
+                        );
+
+        // Check account existence
+        if (challenge.getUserId() == null) {
+            throw new IllegalArgumentException(
+                    "Invalid or expired OTP."
+            );
+        }
+
+        // Check OTP already consumed or verified
+        if (challenge.getVerifiedAt() != null ||
+                challenge.getUsedAt() != null) {
+
+            throw new IllegalArgumentException(
+                    "Invalid or expired OTP."
+            );
+        }
+
+        // Check maximum attempts
+        if (challenge.getAttempts() >= MAX_OTP_ATTEMPTS) {
+            throw new IllegalArgumentException(
+                    "Maximum OTP verification attempts exceeded."
+            );
+        }
+
+        // Check expiry
+        if (challenge.getOtpExpiresAt() == null ||
+                !challenge.getOtpExpiresAt().isAfter(now)) {
+
+            throw new IllegalArgumentException(
+                    "OTP has expired."
+            );
+        }
+
+        // Compare hashed OTP
+        String suppliedHash = hashOtp(request.getOtp());
+
+        if (!MessageDigest.isEqual(
+                challenge.getOtpHash()
+                        .getBytes(StandardCharsets.UTF_8),
+                suppliedHash.getBytes(StandardCharsets.UTF_8))) {
+
+            challenge.setAttempts(challenge.getAttempts() + 1);
+
+            challengeRepository.saveAndFlush(challenge);
+
+            throw new InvalidOtpException(
+                    "Invalid or expired OTP."
+            );
+        }
+
+        // Generate secure random reset token
+        String resetToken = generateResetToken();
+
+        // Store only SHA-256 hash
+        challenge.setResetTokenHash(
+                hashResetToken(resetToken)
+        );
+
+        challenge.setResetTokenExpiresAt(
+                now.plusMinutes(RESET_TOKEN_EXPIRY_MINUTES)
+        );
+
+        challenge.setVerifiedAt(now);
+
+        // OTP cannot be reused
+        challenge.setOtpHash(null);
+
+        challengeRepository.save(challenge);
+
+        // Returned internally to controller.
+        // Controller must set HttpOnly cookie.
+        return resetToken;
+    }
+
+
+    // =========================================
+    // 3. RESET PASSWORD
+    // =========================================
+
+    @Override
+    @Transactional
+    public void resetPassword(
+            String resetToken,
+            ResetPasswordRequest request) {
+
+        if (resetToken == null || resetToken.isBlank()) {
+            throw new IllegalArgumentException(
+                    "Invalid or expired reset session."
+            );
+        }
+
+        if (!request.newPassword().equals(
+                request.confirmPassword())) {
+
+            throw new IllegalArgumentException(
+                    "Passwords do not match."
+            );
+        }
+
+        // Hash incoming token
+        String tokenHash = hashResetToken(resetToken);
+
+        PasswordResetChallenge challenge =
+                challengeRepository
+                        .findByTokenHashForUpdate(tokenHash)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "Invalid or expired reset session."
+                                )
+                        );
+
+        LocalDateTime now = LocalDateTime.now();
+
+        // Validate token
+        if (challenge.getUsedAt() != null ||
+                challenge.getVerifiedAt() == null ||
+                challenge.getResetTokenExpiresAt() == null ||
+                !challenge.getResetTokenExpiresAt().isAfter(now)) {
+
+            throw new IllegalArgumentException(
+                    "Invalid or expired reset session."
+            );
+        }
+
+        // Find user
+        User user = userRepository
+                .findById(challenge.getUserId())
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Account not found."
+                        )
+                );
+
+        // Hash password using BCrypt
+        String encodedPassword =
+                passwordEncoder.encode(request.newPassword());
+
+        user.setPassword(encodedPassword);
+
+        userRepository.save(user);
+
+        // Invalidate every outstanding reset challenge
+        challengeRepository.invalidateAllForUser(
+                user.getId()
+        );
+
+        // Invalidate current challenge explicitly
+        challenge.setUsedAt(now);
+
+        challenge.setResetTokenHash(null);
+
+        challenge.setResetTokenExpiresAt(null);
+
+        challenge.setOtpHash(null);
+
+        challengeRepository.save(challenge);
+    }
+
+
+    // =========================================
+    // 4. GENERATE SIX-DIGIT OTP
+    // =========================================
+
+    private String generateOtp() {
+
+        int otp = secureRandom.nextInt(1_000_000);
+
+        return String.format("%06d", otp);
+    }
+
+
+    // =========================================
+    // 5. GENERATE RESET TOKEN
+    // =========================================
+
+    private String generateResetToken() {
+
+        byte[] bytes = new byte[32];
+
+        secureRandom.nextBytes(bytes);
+
+        return Base64.getUrlEncoder()
+                .withoutPadding()
+                .encodeToString(bytes);
+    }
+
+
+    // =========================================
+    // 6. HASH OTP USING HMAC-SHA256
+    // =========================================
+
+    private String hashOtp(String otp) {
+
+        try {
+
+            Mac mac = Mac.getInstance("HmacSHA256");
+
+            SecretKeySpec key = new SecretKeySpec(
+                    otpSecret.getBytes(StandardCharsets.UTF_8),
+                    "HmacSHA256"
+            );
+
+            mac.init(key);
+
+            byte[] hash = mac.doFinal(
+                    otp.getBytes(StandardCharsets.UTF_8)
+            );
+
+            return HexFormat.of().formatHex(hash);
+
+        } catch (Exception e) {
+
+            throw new IllegalStateException(
+                    "OTP hashing failed."
+            );
+        }
+    }
+
+
+    // =========================================
+    // 7. HASH RESET TOKEN USING SHA-256
+    // =========================================
+
+    private String hashResetToken(String token) {
+
+        try {
+
+            MessageDigest digest =
+                    MessageDigest.getInstance("SHA-256");
+
+            byte[] hash = digest.digest(
+                    token.getBytes(StandardCharsets.UTF_8)
+            );
+
+            return HexFormat.of().formatHex(hash);
+
+        } catch (Exception e) {
+
+            throw new IllegalStateException(
+                    "Reset token hashing failed."
+            );
+        }
+    }
+
+
+    // =========================================
+    // 8. FIND USER
+    // =========================================
+
+    private Optional<User> findUser(
+            String method,
+            String identifier) {
+
+        if ("MOBILE".equals(method)) {
+            return userRepository.findByMobile(identifier);
+        }
+
+        return userRepository.findByEmail(identifier);
+    }
+
+
+    // =========================================
+    // 9. NORMALIZE IDENTIFIER
+    // =========================================
+
+    private String normalizeIdentifier(
+            String method,
+            String identifier) {
+
+        String value = identifier.trim();
+
+        if ("EMAIL".equals(method)) {
+            return value.toLowerCase();
+        }
+
+        return value;
+    }
+
+
+    // =========================================
+    // 10. VALIDATE IDENTIFIER
+    // =========================================
+
+    private void validateIdentifier(
+            String method,
+            String identifier) {
+
+        if ("MOBILE".equals(method) &&
+                !identifier.matches("^[6-9]\\d{9}$")) {
+
+            throw new IllegalArgumentException(
+                    "Invalid mobile number."
+            );
+        }
+
+        if ("EMAIL".equals(method) &&
+                !identifier.matches(
+                        "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"
+                )) {
+
+            throw new IllegalArgumentException(
+                    "Invalid email address."
+            );
+        }
     }
 }

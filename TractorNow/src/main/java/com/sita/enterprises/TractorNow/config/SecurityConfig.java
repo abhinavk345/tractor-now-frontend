@@ -26,7 +26,13 @@ public class SecurityConfig {
                                 "/api/auth/register",
                                 "/api/auth/register/**",
                                 "/api/auth/login",
-                                "/api/auth/login/**"
+                                "/api/auth/login/**",
+                                "/api/auth/forgot-password",
+                                "/api/auth/verify-reset-otp",
+                                "/api/auth/reset-password",
+                                "/api/auth/forgot-password",
+                                "/api/auth/verify-reset-otp",
+                                "/api/auth/reset-password"
                         ).permitAll()
 
                         .requestMatchers("/api/auth/test").authenticated()
