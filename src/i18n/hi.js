@@ -39,7 +39,9 @@ const hi = {
     login: "लॉगिन",
     logout: "लॉगआउट",
     register: "पंजीकरण",
-
+"orContinueWith": "या इसके साथ जारी रखें",
+    "continueWithGoogle": "Google के साथ जारी रखें",
+    "continueWithFacebook": "Facebook के साथ जारी रखें",
     farmer: "किसान",
     equipmentOwner:
       "उपकरण मालिक",

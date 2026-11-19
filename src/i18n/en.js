@@ -35,7 +35,10 @@ const en = {
   },
 
   auth: {
-    login: "Login",
+     "orContinueWith": "OR CONTINUE WITH",
+    "continueWithGoogle": "Continue with Google",
+    "continueWithFacebook": "Continue with Facebook",
+        login: "Login",
     logout: "Logout",
     register: "Register",
 

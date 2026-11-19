@@ -18,6 +18,15 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const handleSocialLogin = (provider) => {
+  const apiBaseUrl =
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+
+  // Preserve the selected role for backend OAuth2 processing.
+  window.location.href =
+    `${apiBaseUrl}/oauth2/authorization/${provider}?role=${role}`;
+};
+
 
 const handleLogin = async (event) => {
   event.preventDefault();
@@ -258,6 +267,35 @@ const handleLogin = async (event) => {
             >
               {loading ? "Signing In..." : t("auth.login")}
             </button>
+            {/* SOCIAL LOGIN DIVIDER */}
+<div className="social-login-divider">
+  <span>{t("auth.orContinueWith")}</span>
+</div>
+
+{/* GOOGLE LOGIN */}
+<button
+  type="button"
+  className="social-login-button google-login"
+  onClick={() => handleSocialLogin("google")}
+  disabled={loading}
+>
+  <img
+    src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+    alt="Google"
+  />
+  <span>{t("auth.continueWithGoogle")}</span>
+</button>
+
+{/* FACEBOOK LOGIN */}
+<button
+  type="button"
+  className="social-login-button facebook-login"
+  onClick={() => handleSocialLogin("facebook")}
+  disabled={loading}
+>
+  <span className="facebook-icon">f</span>
+  <span>{t("auth.continueWithFacebook")}</span>
+</button>
 
           </form>
 
