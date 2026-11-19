@@ -7,9 +7,11 @@ import com.sita.enterprises.TractorNow.dto.auth.VerifyOtpRequest;
 import com.sita.enterprises.TractorNow.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -20,7 +22,7 @@ public class AuthController {
     @PostMapping("/register/farmer")
     public ResponseEntity<?> registerFarmer(
             @Valid @RequestBody RegisterRequest request) {
-
+log.info("api started:registerFarmer");
         return ResponseEntity.ok(
                 authService.registerFarmer(request)
         );
@@ -61,4 +63,9 @@ public class AuthController {
                 authService.verifyOtp(request)
         );
     }
+
+    @GetMapping("test")
+        public String testing(){
+        return "helloworld";
+        }
 }
