@@ -1,11 +1,11 @@
 package com.sita.enterprises.TractorNow.service.impl;
 
-import com.tractornow.entity.Booking;
-import com.tractornow.enums.BookingStatus;
-import com.tractornow.repository.BookingRepository;
-import com.tractornow.repository.EquipmentRepository;
-import com.tractornow.repository.UserRepository;
-import com.tractornow.service.OwnerDashboardService;
+import com.sita.enterprises.TractorNow.entity.Booking;
+import com.sita.enterprises.TractorNow.enums.BookingStatus;
+import com.sita.enterprises.TractorNow.repository.BookingRepository;
+import com.sita.enterprises.TractorNow.repository.EquipmentRepository;
+import com.sita.enterprises.TractorNow.repository.UserRepository;
+import com.sita.enterprises.TractorNow.service.OwnerDashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -239,7 +239,7 @@ public class OwnerDashboardServiceImpl
                         );
 
         if (owner.getRole()
-                != com.tractornow.enums.UserRole
+                != com.sita.enterprises.TractorNow.enums.UserRole
                 .EQUIPMENT_OWNER) {
 
             throw new RuntimeException(

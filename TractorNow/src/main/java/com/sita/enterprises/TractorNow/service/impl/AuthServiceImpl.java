@@ -1,14 +1,14 @@
 package com.sita.enterprises.TractorNow.service.impl;
+import com.sita.enterprises.TractorNow.entity.User;
+import com.sita.enterprises.TractorNow.dto.auth.LoginRequest;
+import com.sita.enterprises.TractorNow.dto.auth.RegisterRequest;
+import com.sita.enterprises.TractorNow.dto.auth.SendOtpRequest;
+import com.sita.enterprises.TractorNow.dto.auth.VerifyOtpRequest;
 
-import com.tractornow.dto.auth.LoginRequest;
-import com.tractornow.dto.auth.RegisterRequest;
-import com.tractornow.dto.auth.SendOtpRequest;
-import com.tractornow.dto.auth.VerifyOtpRequest;
-import com.tractornow.entity.User;
-import com.tractornow.enums.UserRole;
-import com.tractornow.repository.UserRepository;
-import com.tractornow.service.AuthService;
-import com.tractornow.service.OtpService;
+import com.sita.enterprises.TractorNow.enums.UserRole;
+import com.sita.enterprises.TractorNow.repository.UserRepository;
+import com.sita.enterprises.TractorNow.service.AuthService;
+import com.sita.enterprises.TractorNow.service.OtpService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

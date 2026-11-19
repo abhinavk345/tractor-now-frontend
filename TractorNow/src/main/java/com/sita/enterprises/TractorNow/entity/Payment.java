@@ -1,7 +1,7 @@
 package com.sita.enterprises.TractorNow.entity;
 
-import com.tractornow.enums.PaymentMethod;
-import com.tractornow.enums.PaymentStatus;
+import com.sita.enterprises.TractorNow.enums.PaymentMethod;
+import com.sita.enterprises.TractorNow.enums.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.*;
 

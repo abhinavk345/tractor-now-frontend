@@ -1,6 +1,6 @@
 package com.sita.enterprises.TractorNow.repository;
 
-import com.tractornow.entity.Conversation;
+import com.sita.enterprises.TractorNow.entity.Conversation;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

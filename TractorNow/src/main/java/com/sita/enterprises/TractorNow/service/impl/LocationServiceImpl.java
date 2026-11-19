@@ -1,8 +1,8 @@
 package com.sita.enterprises.TractorNow.service.impl;
 
-import com.tractornow.entity.Equipment;
-import com.tractornow.repository.EquipmentRepository;
-import com.tractornow.service.LocationService;
+import com.sita.enterprises.TractorNow.entity.Equipment;
+import com.sita.enterprises.TractorNow.repository.EquipmentRepository;
+import com.sita.enterprises.TractorNow.service.LocationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

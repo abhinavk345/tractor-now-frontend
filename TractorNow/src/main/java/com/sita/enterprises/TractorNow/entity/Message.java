@@ -1,6 +1,6 @@
 package com.sita.enterprises.TractorNow.entity;
 
-import com.tractornow.enums.MessageStatus;
+import com.sita.enterprises.TractorNow.enums.MessageStatus;
 import jakarta.persistence.*;
 import lombok.*;
 

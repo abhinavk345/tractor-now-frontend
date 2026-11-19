@@ -1,8 +1,8 @@
 package com.sita.enterprises.TractorNow.controller;
 
-import com.tractornow.dto.equipment.EquipmentRequest;
-import com.tractornow.enums.EquipmentType;
-import com.tractornow.service.EquipmentService;
+import com.sita.enterprises.TractorNow.dto.equipment.EquipmentRequest;
+import com.sita.enterprises.TractorNow.enums.EquipmentType;
+import com.sita.enterprises.TractorNow.service.EquipmentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

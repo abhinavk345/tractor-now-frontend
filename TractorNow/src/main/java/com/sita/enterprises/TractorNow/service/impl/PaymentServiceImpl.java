@@ -1,13 +1,13 @@
 package com.sita.enterprises.TractorNow.service.impl;
 
-import com.tractornow.entity.Booking;
-import com.tractornow.entity.Payment;
-import com.tractornow.enums.BookingStatus;
-import com.tractornow.enums.PaymentMethod;
-import com.tractornow.enums.PaymentStatus;
-import com.tractornow.repository.BookingRepository;
-import com.tractornow.repository.PaymentRepository;
-import com.tractornow.service.PaymentService;
+import com.sita.enterprises.TractorNow.entity.Booking;
+import com.sita.enterprises.TractorNow.entity.Payment;
+import com.sita.enterprises.TractorNow.enums.BookingStatus;
+import com.sita.enterprises.TractorNow.enums.PaymentMethod;
+import com.sita.enterprises.TractorNow.enums.PaymentStatus;
+import com.sita.enterprises.TractorNow.repository.BookingRepository;
+import com.sita.enterprises.TractorNow.repository.PaymentRepository;
+import com.sita.enterprises.TractorNow.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

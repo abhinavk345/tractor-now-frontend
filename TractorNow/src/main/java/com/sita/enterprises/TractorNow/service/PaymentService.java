@@ -1,6 +1,6 @@
 package com.sita.enterprises.TractorNow.service;
 
-import com.tractornow.enums.PaymentMethod;
+import com.sita.enterprises.TractorNow.enums.PaymentMethod;
 
 public interface PaymentService {
 

@@ -1,7 +1,7 @@
 package com.sita.enterprises.TractorNow.repository;
 
-import com.tractornow.entity.Message;
-import com.tractornow.enums.MessageStatus;
+import com.sita.enterprises.TractorNow.entity.Message;
+import com.sita.enterprises.TractorNow.enums.MessageStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

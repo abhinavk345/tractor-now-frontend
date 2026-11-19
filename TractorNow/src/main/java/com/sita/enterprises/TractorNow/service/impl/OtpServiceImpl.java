@@ -1,8 +1,8 @@
 package com.sita.enterprises.TractorNow.service.impl;
 
-import com.tractornow.entity.OtpVerification;
-import com.tractornow.repository.OtpVerificationRepository;
-import com.tractornow.service.OtpService;
+import com.sita.enterprises.TractorNow.entity.OtpVerification;
+import com.sita.enterprises.TractorNow.repository.OtpVerificationRepository;
+import com.sita.enterprises.TractorNow.service.OtpService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

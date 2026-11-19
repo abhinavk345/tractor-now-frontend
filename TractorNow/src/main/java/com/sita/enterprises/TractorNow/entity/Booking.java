@@ -1,6 +1,6 @@
 package com.sita.enterprises.TractorNow.entity;
 
-import com.tractornow.enums.BookingStatus;
+import com.sita.enterprises.TractorNow.enums.BookingStatus;
 import jakarta.persistence.*;
 import lombok.*;
 

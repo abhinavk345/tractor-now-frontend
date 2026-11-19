@@ -1,7 +1,7 @@
 package com.sita.enterprises.TractorNow.controller;
 
-import com.tractornow.dto.booking.BookingRequest;
-import com.tractornow.service.BookingService;
+import com.sita.enterprises.TractorNow.dto.booking.BookingRequest;
+import com.sita.enterprises.TractorNow.service.BookingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

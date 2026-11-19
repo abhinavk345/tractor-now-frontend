@@ -32,9 +32,9 @@ public interface BookingRepository
     FROM Booking b
     WHERE b.equipment.id = :equipmentId
       AND b.status IN (
-          com.tractornow.enums.BookingStatus.PENDING,
-          com.tractornow.enums.BookingStatus.CONFIRMED,
-          com.tractornow.enums.BookingStatus.ONGOING
+          com.sita.enterprises.TractorNow.enums.BookingStatus.PENDING,
+          com.sita.enterprises.TractorNow.enums.BookingStatus.CONFIRMED,
+          com.sita.enterprises.TractorNow.enums.BookingStatus.ONGOING
       )
       AND b.fromDateTime < :toDateTime
       AND b.toDateTime > :fromDateTime

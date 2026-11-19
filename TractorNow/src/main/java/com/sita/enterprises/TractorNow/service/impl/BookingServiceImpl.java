@@ -1,15 +1,15 @@
 package com.sita.enterprises.TractorNow.service.impl;
 
-import com.tractornow.dto.booking.BookingRequest;
-import com.tractornow.entity.Booking;
-import com.tractornow.entity.Equipment;
-import com.tractornow.entity.User;
-import com.tractornow.enums.BookingStatus;
-import com.tractornow.enums.UserRole;
-import com.tractornow.repository.BookingRepository;
-import com.tractornow.repository.EquipmentRepository;
-import com.tractornow.repository.UserRepository;
-import com.tractornow.service.BookingService;
+import com.sita.enterprises.TractorNow.dto.booking.BookingRequest;
+import com.sita.enterprises.TractorNow.entity.Booking;
+import com.sita.enterprises.TractorNow.entity.Equipment;
+import com.sita.enterprises.TractorNow.entity.User;
+import com.sita.enterprises.TractorNow.enums.BookingStatus;
+import com.sita.enterprises.TractorNow.enums.UserRole;
+import com.sita.enterprises.TractorNow.repository.BookingRepository;
+import com.sita.enterprises.TractorNow.repository.EquipmentRepository;
+import com.sita.enterprises.TractorNow.repository.UserRepository;
+import com.sita.enterprises.TractorNow.service.BookingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

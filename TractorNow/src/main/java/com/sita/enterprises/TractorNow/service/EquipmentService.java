@@ -1,7 +1,7 @@
 package com.sita.enterprises.TractorNow.service;
 
-import com.tractornow.dto.equipment.EquipmentRequest;
-import com.tractornow.enums.EquipmentType;
+import com.sita.enterprises.TractorNow.dto.equipment.EquipmentRequest;
+import com.sita.enterprises.TractorNow.enums.EquipmentType;
 
 public interface EquipmentService {
 

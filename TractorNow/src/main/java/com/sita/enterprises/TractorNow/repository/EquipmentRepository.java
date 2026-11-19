@@ -1,7 +1,7 @@
 package com.sita.enterprises.TractorNow.repository;
 
-import com.tractornow.entity.Equipment;
-import com.tractornow.enums.EquipmentType;
+import com.sita.enterprises.TractorNow.entity.Equipment;
+import com.sita.enterprises.TractorNow.enums.EquipmentType;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

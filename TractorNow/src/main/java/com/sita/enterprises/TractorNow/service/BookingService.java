@@ -1,6 +1,6 @@
 package com.sita.enterprises.TractorNow.service;
 
-import com.tractornow.dto.booking.BookingRequest;
+import com.sita.enterprises.TractorNow.dto.booking.BookingRequest;
 
 public interface BookingService {
 

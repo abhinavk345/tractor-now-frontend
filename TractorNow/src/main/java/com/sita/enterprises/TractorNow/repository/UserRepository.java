@@ -1,6 +1,6 @@
 package com.sita.enterprises.TractorNow.repository;
 
-import com.tractornow.entity.User;
+import com.sita.enterprises.TractorNow.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

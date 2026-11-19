@@ -1,14 +1,14 @@
 package com.sita.enterprises.TractorNow.service.impl;
 
-import com.tractornow.entity.Conversation;
-import com.tractornow.entity.Message;
-import com.tractornow.entity.User;
-import com.tractornow.enums.MessageStatus;
-import com.tractornow.enums.UserRole;
-import com.tractornow.repository.ConversationRepository;
-import com.tractornow.repository.MessageRepository;
-import com.tractornow.repository.UserRepository;
-import com.tractornow.service.ChatService;
+import com.sita.enterprises.TractorNow.entity.Conversation;
+import com.sita.enterprises.TractorNow.entity.Message;
+import com.sita.enterprises.TractorNow.entity.User;
+import com.sita.enterprises.TractorNow.enums.MessageStatus;
+import com.sita.enterprises.TractorNow.enums.UserRole;
+import com.sita.enterprises.TractorNow.repository.ConversationRepository;
+import com.sita.enterprises.TractorNow.repository.MessageRepository;
+import com.sita.enterprises.TractorNow.repository.UserRepository;
+import com.sita.enterprises.TractorNow.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

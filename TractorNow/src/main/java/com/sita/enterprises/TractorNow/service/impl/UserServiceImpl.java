@@ -1,8 +1,8 @@
 package com.sita.enterprises.TractorNow.service.impl;
 
-import com.tractornow.entity.User;
-import com.tractornow.repository.UserRepository;
-import com.tractornow.service.UserService;
+import com.sita.enterprises.TractorNow.entity.User;
+import com.sita.enterprises.TractorNow.repository.UserRepository;
+import com.sita.enterprises.TractorNow.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

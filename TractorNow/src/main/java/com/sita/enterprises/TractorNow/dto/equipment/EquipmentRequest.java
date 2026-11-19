@@ -1,6 +1,6 @@
 package com.sita.enterprises.TractorNow.dto.equipment;
 
-import com.tractornow.enums.EquipmentType;
+import com.sita.enterprises.TractorNow.enums.EquipmentType;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
