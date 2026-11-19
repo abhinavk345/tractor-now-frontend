@@ -15,4 +15,6 @@ public interface UserRepository
     boolean existsByMobile(String mobile);
 
     boolean existsByEmail(String email);
+
+    Optional<User> findByEmailOrMobile( String username, String mobile);
 }

@@ -4,6 +4,7 @@ import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Data
@@ -18,6 +19,9 @@ public class BookingRequest {
     @NotNull
     private LocalTime startTime;
 
+    private String reason;
+
+    private Long farmerId;
     @NotNull
     @Min(1)
     @Max(24)
@@ -34,4 +38,8 @@ public class BookingRequest {
     private Double fieldLongitude;
 
     private String additionalNote;
+
+     private LocalDateTime fromDateTime;
+     private  LocalDateTime toDateTime;
+
 }

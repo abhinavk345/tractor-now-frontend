@@ -90,42 +90,51 @@ public class AuthServiceImpl implements AuthService {
         return response;
     }
 
+
     @Override
     @Transactional(readOnly = true)
     public Object login(LoginRequest request) {
 
+        // 1. Validate request
         if (request == null) {
-            throw new IllegalArgumentException("Login request cannot be null");
+            throw new IllegalArgumentException(
+                    "Login request cannot be null"
+            );
         }
 
+        // 2. Validate username
         if (isBlank(request.getUsername())) {
             throw new IllegalArgumentException(
                     "Mobile number or email is required"
             );
         }
 
+        // 3. Validate password
         if (isBlank(request.getPassword())) {
             throw new IllegalArgumentException(
                     "Password is required"
             );
         }
 
+        String username = request.getUsername().trim();
+
+        // 4. Find user by email or mobile number
         User user = userRepository
-                .findByEmailOrMobile(
-                        request.getUsername(),
-                        request.getUsername()
-                )
+                .findByEmailOrMobile(username, username)
                 .orElseThrow(() ->
                         new IllegalArgumentException(
                                 "Invalid email/mobile or password"
-                        ));
+                        )
+                );
 
+        // 5. Check account status
         if (!Boolean.TRUE.equals(user.getActive())) {
             throw new IllegalStateException(
                     "User account is inactive"
             );
         }
 
+        // 6. Verify password
         if (!passwordEncoder.matches(
                 request.getPassword(),
                 user.getPassword()
@@ -135,6 +144,7 @@ public class AuthServiceImpl implements AuthService {
             );
         }
 
+        // 7. Prepare response
         Map<String, Object> response = new HashMap<>();
 
         response.put("id", user.getId());
@@ -145,20 +155,11 @@ public class AuthServiceImpl implements AuthService {
         response.put("mobileVerified", user.getMobileVerified());
         response.put("emailVerified", user.getEmailVerified());
 
-        /*
-         * JWT token should be generated here once JwtService
-         * is added to the project.
-         *
-         * Example:
-         *
-         * String token = jwtService.generateToken(user);
-         * response.put("token", token);
-         */
+        // 8. JWT token generation can be added here
+        // String token = jwtService.generateToken(user);
+        // response.put("token", token);
 
-        response.put(
-                "message",
-                "Login successful"
-        );
+        response.put("message", "Login successful");
 
         return response;
     }

@@ -40,7 +40,7 @@ public class Booking {
 
     private LocalTime startTime;
 
-    private Integer durationHours;
+    private Double durationHours;
 
     private Boolean operatorRequired;
 
@@ -57,6 +57,11 @@ public class Booking {
     private Double serviceCharge;
 
     private Double totalAmount;
+
+    private LocalDateTime fromDateTime;
+    private  LocalDateTime toDateTime;
+
+    private String reason;
 
     @Enumerated(EnumType.STRING)
     private BookingStatus status;
@@ -79,5 +84,9 @@ public class Booking {
     @PreUpdate
     public void beforeUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    public void setToDateTime(LocalDateTime toDateTime) {
+
     }
 }

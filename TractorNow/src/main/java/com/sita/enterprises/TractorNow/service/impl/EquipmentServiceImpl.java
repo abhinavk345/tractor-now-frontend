@@ -519,7 +519,7 @@ public class EquipmentServiceImpl implements EquipmentService {
                                         e.get("pricePerHour"),
                                         0
                                 )
-                        ).reversed()
+                        )
                 );
                 break;
 

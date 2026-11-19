@@ -35,4 +35,8 @@ public class EquipmentRequest {
     private Double longitude;
 
     private String imageUrl;
+
+    private Long ownerId;
+
+    private Boolean available;
 }
