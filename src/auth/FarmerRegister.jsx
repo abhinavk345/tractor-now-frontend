@@ -1,9 +1,12 @@
+
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 import "./Register.css";
 
 import { useLanguage } from "../context/LanguageContext";
+import { registerFarmer } from "../services/AuthService";
 
 const FarmerRegister = () => {
   const { t } = useLanguage();
@@ -23,7 +26,12 @@ const FarmerRegister = () => {
 
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [locationLoading, setLocationLoading] = useState(false);
 
+  const [latitude, setLatitude] = useState(null);
+  const [longitude, setLongitude] = useState(null);
+
+  // HANDLE INPUT CHANGES
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -33,34 +41,356 @@ const FarmerRegister = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  // GET CURRENT LOCATION AND ADDRESS
+  const handleCurrentLocation1 = () => {
+    if (!navigator.geolocation) {
+      Swal.fire({
+        icon: "error",
+        title: "Location Not Supported",
+        text: "Your browser does not support location services.",
+      });
+      return;
+    }
+
+    setLocationLoading(true);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+
+        // Save GPS coordinates
+        setLatitude(lat);
+        setLongitude(lon);
+
+        try {
+          const url = new URL(
+            "https://nominatim.openstreetmap.org/reverse"
+          );
+
+          url.search = new URLSearchParams({
+            lat: String(lat),
+            lon: String(lon),
+            format: "jsonv2",
+            addressdetails: "1",
+            "accept-language": "en",
+          }).toString();
+
+          const response = await fetch(url.toString());
+
+          if (!response.ok) {
+            throw new Error("Address lookup failed");
+          }
+
+          const data = await response.json();
+          const address = data.address || {};
+
+          const village =
+            address.village ||
+            address.town ||
+            address.hamlet ||
+            address.city ||
+            address.suburb ||
+            address.neighbourhood ||
+            "";
+
+          const district =
+            address.state_district ||
+            address.county ||
+            address.district ||
+            "";
+
+          const state = address.state || "";
+
+          const pincode = address.postcode
+            ? address.postcode.replace(/\D/g, "").slice(0, 6)
+            : "";
+
+          // Automatically fill form fields
+          setForm((previous) => ({
+            ...previous,
+            village,
+            district,
+            state,
+            pincode,
+          }));
+
+          Swal.fire({
+            icon: "success",
+            title: "Location Detected!",
+            html: `
+              <div style="text-align:left">
+                <p><b>Village:</b> ${village || "Not found"}</p>
+                <p><b>District:</b> ${district || "Not found"}</p>
+                <p><b>State:</b> ${state || "Not found"}</p>
+                <p><b>Pincode:</b> ${pincode || "Not found"}</p>
+              </div>
+            `,
+            confirmButtonColor: "#2e7d32",
+          });
+
+        } catch (error) {
+          console.error("Address lookup error:", error);
+
+          Swal.fire({
+            icon: "warning",
+            title: "Address Lookup Failed",
+            text: "GPS coordinates were captured. Please enter your address manually.",
+            confirmButtonColor: "#2e7d32",
+          });
+
+        } finally {
+          setLocationLoading(false);
+        }
+      },
+
+      (error) => {
+        setLocationLoading(false);
+
+        let message = "Unable to retrieve your location.";
+
+        if (error.code === 1) {
+          message = "Please allow location permission in your browser.";
+        } else if (error.code === 2) {
+          message = "Your current location is unavailable.";
+        } else if (error.code === 3) {
+          message = "Location request timed out. Please try again.";
+        }
+
+        Swal.fire({
+          icon: "error",
+          title: "Location Error",
+          text: message,
+          confirmButtonColor: "#d33",
+        });
+      },
+
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0,
+      }
+    );
+  };
+
+const handleCurrentLocation = () => {
+  if (!navigator.geolocation) {
+    Swal.fire({
+      icon: "error",
+      title: "Location Not Supported",
+      text: "Your browser does not support location services.",
+    });
+    return;
+  }
+
+  Swal.fire({
+    title: "Fetching Location...",
+    text: "Please allow location access.",
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    },
+  });
+
+  navigator.geolocation.getCurrentPosition(
+    async (position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+
+      // 1. Save latitude and longitude
+      setLatitude(lat);
+      setLongitude(lng);
+
+      try {
+        // 2. Convert coordinates into address
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`
+        );
+
+        if (!response.ok) {
+          throw new Error("Unable to fetch address");
+        }
+
+        const data = await response.json();
+        const address = data.address || {};
+
+        // 3. Automatically fill address fields
+        setForm((previous) => ({
+          ...previous,
+
+          village:
+            address.village ||
+            address.town ||
+            address.suburb ||
+            address.hamlet ||
+            address.city ||
+            previous.village,
+
+          district:
+            address.state_district ||
+            address.county ||
+            previous.district,
+
+          state:
+            address.state ||
+            previous.state,
+
+          pincode:
+            address.postcode ||
+            previous.pincode,
+        }));
+
+        // 4. Success popup
+        await Swal.fire({
+          icon: "success",
+          title: "Location Captured!",
+          html: `
+            <p>Latitude: ${lat}</p>
+            <p>Longitude: ${lng}</p>
+            <p>Address fields have been updated.</p>
+          `,
+          confirmButtonColor: "#2e7d32",
+        });
+
+      } catch (error) {
+        console.error("Reverse geocoding error:", error);
+
+        Swal.fire({
+          icon: "warning",
+          title: "Coordinates Captured",
+          text: "Latitude and longitude were captured, but address lookup failed. Please enter your address manually.",
+        });
+      }
+    },
+
+    (error) => {
+      let message = "";
+
+      switch (error.code) {
+        case 1:
+          message = "Please allow location permission in browser settings.";
+          break;
+
+        case 2:
+          message = "Location is currently unavailable.";
+          break;
+
+        case 3:
+          message = "Location request timed out. Please try again.";
+          break;
+
+        default:
+          message = "Unable to fetch your location.";
+      }
+
+      Swal.fire({
+        icon: "error",
+        title: "Location Error",
+        text: message,
+      });
+    },
+
+    {
+      enableHighAccuracy: true,
+      timeout: 20000,
+      maximumAge: 0,
+    }
+  );
+};
+
+
+
+  // FARMER REGISTRATION
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (form.mobile.length !== 10) {
+      Swal.fire({
+        icon: "warning",
+        title: "Invalid Mobile Number",
+        text: "Please enter a valid 10-digit mobile number.",
+      });
+      return;
+    }
+
+    if (form.pincode.length !== 6) {
+      Swal.fire({
+        icon: "warning",
+        title: "Invalid Pincode",
+        text: "Please enter a valid 6-digit pincode.",
+      });
+      return;
+    }
+
     if (form.password !== form.confirmPassword) {
-      alert(t("validation.passwordMismatch"));
+      Swal.fire({
+        icon: "warning",
+        title: "Password Mismatch",
+        text: t("validation.passwordMismatch"),
+      });
       return;
     }
 
     if (!termsAccepted) {
-      alert(t("validation.acceptTerms"));
+      Swal.fire({
+        icon: "warning",
+        title: "Terms Required",
+        text: t("validation.acceptTerms"),
+      });
       return;
     }
 
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    console.log("Farmer Registration:", form);
+      const farmerData = {
+        fullName: form.fullName,
+        mobile: form.mobile,
+        email: form.email,
+        password: form.password,
+        confirmPassword: form.confirmPassword,
+        village: form.village,
+        district: form.district,
+        state: form.state,
+        pincode: form.pincode,
+        latitude: latitude,
+        longitude: longitude,
+        termsAccepted: termsAccepted,
+      };
 
-    // TODO:
-    // Connect Spring Boot registration API here.
-    // OTP verification will also be added here later.
+      const response = await registerFarmer(farmerData);
 
-    setTimeout(() => {
-      setLoading(false);
+      console.log("Registration response:", response);
 
-      alert(t("auth.register") + " successful!");
+      await Swal.fire({
+        icon: "success",
+        title: "Registration Successful!",
+        text:
+          response.message ||
+          "Your farmer account has been created successfully.",
+        confirmButtonText: "Go to Login",
+        confirmButtonColor: "#2e7d32",
+        allowOutsideClick: false,
+      });
 
       navigate("/login");
-    }, 800);
+
+    } catch (error) {
+      console.error("Registration error:", error);
+
+      Swal.fire({
+        icon: "error",
+        title: "Registration Failed!",
+        text:
+          error.message ||
+          error.error ||
+          "Something went wrong. Please try again.",
+        confirmButtonColor: "#d33",
+      });
+
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -68,9 +398,7 @@ const FarmerRegister = () => {
 
       <div className="register-container">
 
-        {/* =========================
-            HEADER
-        ========================= */}
+        {/* HEADER */}
 
         <div className="register-brand">
 
@@ -78,45 +406,31 @@ const FarmerRegister = () => {
             👨‍🌾
           </div>
 
-          <h1>
-            {t("app.name")}
-          </h1>
+          <h1>{t("app.name")}</h1>
 
-          <p>
-            {t("auth.registerAsFarmer")}
-          </p>
+          <p>{t("auth.registerAsFarmer")}</p>
 
         </div>
 
-        {/* =========================
-            CARD
-        ========================= */}
+        {/* CARD */}
 
         <div className="register-card">
 
           <div className="register-heading">
 
-            <h2>
-              {t("auth.registerAsFarmer")}
-            </h2>
+            <h2>{t("auth.registerAsFarmer")}</h2>
 
-            <p>
-              {t("home.welcome")}
-            </p>
+            <p>{t("home.welcome")}</p>
 
           </div>
 
           <form onSubmit={handleSubmit}>
 
-            {/* =========================
-                PERSONAL INFORMATION
-            ========================= */}
+            {/* PERSONAL INFORMATION */}
 
             <div className="section-title">
               {t("auth.fullName")}
             </div>
-
-            {/* Full Name */}
 
             <div className="form-group">
 
@@ -137,7 +451,7 @@ const FarmerRegister = () => {
 
             </div>
 
-            {/* Mobile + Email */}
+            {/* MOBILE AND EMAIL */}
 
             <div className="form-row">
 
@@ -153,8 +467,7 @@ const FarmerRegister = () => {
                   name="mobile"
                   value={form.mobile}
                   onChange={(e) => {
-                    const value =
-                      e.target.value.replace(/\D/g, "");
+                    const value = e.target.value.replace(/\D/g, "");
 
                     setForm((previous) => ({
                       ...previous,
@@ -191,9 +504,7 @@ const FarmerRegister = () => {
 
             </div>
 
-            {/* =========================
-                PASSWORD
-            ========================= */}
+            {/* PASSWORD */}
 
             <div className="form-row">
 
@@ -239,15 +550,11 @@ const FarmerRegister = () => {
 
             </div>
 
-            {/* =========================
-                LOCATION
-            ========================= */}
+            {/* LOCATION */}
 
             <div className="section-title location-title">
               📍 {t("location.location")}
             </div>
-
-            {/* Village + District */}
 
             <div className="form-row">
 
@@ -289,8 +596,6 @@ const FarmerRegister = () => {
 
             </div>
 
-            {/* State + Pincode */}
-
             <div className="form-row">
 
               <div className="form-group">
@@ -323,8 +628,7 @@ const FarmerRegister = () => {
                   name="pincode"
                   value={form.pincode}
                   onChange={(e) => {
-                    const value =
-                      e.target.value.replace(/\D/g, "");
+                    const value = e.target.value.replace(/\D/g, "");
 
                     setForm((previous) => ({
                       ...previous,
@@ -342,23 +646,32 @@ const FarmerRegister = () => {
 
             </div>
 
-            {/* =========================
-                CURRENT LOCATION
-            ========================= */}
+            {/* CURRENT LOCATION */}
 
             <button
               type="button"
               className="location-button"
-              onClick={() =>
-                alert(t("location.locationPermission"))
-              }
+              onClick={handleCurrentLocation}
+              disabled={locationLoading}
             >
-              📍 {t("location.useCurrentLocation")}
+              {locationLoading
+                ? "📍 Detecting Location..."
+                : `📍 ${t("location.useCurrentLocation")}`}
             </button>
 
-            {/* =========================
-                TERMS
-            ========================= */}
+            {latitude !== null && longitude !== null && (
+              <div className="location-success">
+
+                <p>✓ Location captured successfully</p>
+
+                <small>Latitude: {latitude}</small>
+
+                <small>Longitude: {longitude}</small>
+
+              </div>
+            )}
+
+            {/* TERMS */}
 
             <div className="terms-container">
 
@@ -366,9 +679,7 @@ const FarmerRegister = () => {
                 type="checkbox"
                 id="farmerTerms"
                 checked={termsAccepted}
-                onChange={(e) =>
-                  setTermsAccepted(e.target.checked)
-                }
+                onChange={(e) => setTermsAccepted(e.target.checked)}
                 required
               />
 
@@ -378,9 +689,7 @@ const FarmerRegister = () => {
 
             </div>
 
-            {/* =========================
-                SUBMIT
-            ========================= */}
+            {/* SUBMIT */}
 
             <button
               type="submit"
@@ -388,21 +697,17 @@ const FarmerRegister = () => {
               disabled={loading}
             >
               {loading
-                ? t("common.loading")
+                ? "Registering..."
                 : t("auth.register")}
             </button>
 
           </form>
 
-          {/* =========================
-              LOGIN
-          ========================= */}
+          {/* LOGIN */}
 
           <div className="already-account">
 
-            <span>
-              {t("auth.alreadyHaveAccount")}
-            </span>
+            <span>{t("auth.alreadyHaveAccount")}</span>
 
             <Link to="/login">
               {t("auth.login")}
@@ -412,7 +717,7 @@ const FarmerRegister = () => {
 
         </div>
 
-        {/* Footer */}
+        {/* FOOTER */}
 
         <div className="register-footer">
 
