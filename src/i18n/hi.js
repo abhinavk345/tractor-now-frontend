@@ -109,6 +109,15 @@ const hi = {
 
     acceptTerms:
       "मैं नियम एवं शर्तों और गोपनीयता नीति से सहमत हूँ",
+       forgotPasswordTitle: "पासवर्ड भूल गए?",
+  recoveryInstructions: "अपना अकाउंट रिकवर करने का तरीका चुनें।",
+  recoveryMethod: "रिकवरी का तरीका चुनें",
+  registeredMobile: "रजिस्टर्ड मोबाइल नंबर",
+  registeredEmail: "रजिस्टर्ड ईमेल एड्रेस",
+  enterOtp: "OTP दर्ज करें",
+  newPassword: "नया पासवर्ड",
+  confirmNewPassword: "नया पासवर्ड कन्फर्म करें",
+  backToLogin: "लॉगिन पर वापस जाएं"
   },
 
   validation: {
@@ -692,7 +701,7 @@ const hi = {
 
     sessionExpired:
       "आपका सत्र समाप्त हो गया है। कृपया दोबारा लॉगिन करें।",
-  },
+  }
 };
 
 export default hi;

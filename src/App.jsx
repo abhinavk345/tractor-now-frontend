@@ -4,7 +4,7 @@ import Login from "./auth/Login";
 import FarmerRegister from "./auth/FarmerRegister";
 import OwnerRegister from "./auth/OwnerRegister";
 import FarmerHome from "./pages/farmer/FarmerHome";
-
+import ForgotPassword from "./pages/ForgotPassword";
 function App() {
   return (
     <BrowserRouter>
@@ -23,6 +23,11 @@ function App() {
         <Route
           path="/register/farmer"
           element={<FarmerRegister />}
+        />
+
+        <Route
+          path="/forgot-password"
+          element={<ForgotPassword />}
         />
 
         <Route

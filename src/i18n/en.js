@@ -2,7 +2,7 @@ const en = {
   app: {
     name: "TractorNow",
     tagline:
-      "Find and book agricultural equipment near you",
+      "Develop by Abhinav Kumar. Find and book agricultural equipment near you.",
   },
 
   common: {
@@ -69,7 +69,15 @@ const en = {
     weak: "Weak",
     medium: "Medium",
     strong: "Strong",
-
+    forgotPasswordTitle: "Forgot Password?",
+    recoveryInstructions: "Choose how you want to recover your account.",
+    recoveryMethod: "Choose Recovery Method",
+    registeredMobile: "Registered Mobile Number",
+    registeredEmail: "Registered Email Address",
+    enterOtp: "Enter OTP",
+    newPassword: "New Password",
+    confirmNewPassword: "Confirm New Password",
+    backToLogin: "Back to Login",
     acceptTerms:
       "I agree to the Terms & Conditions and Privacy Policy",
   },
@@ -558,7 +566,7 @@ const en = {
 
     sessionExpired:
       "Your session has expired. Please login again.",
-  },
+  }
 };
 
 export default en;

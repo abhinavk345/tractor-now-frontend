@@ -118,17 +118,18 @@ log.info("api started:registerFarmer");
             @Valid @RequestBody ResetPasswordRequest request,
             HttpServletResponse servletResponse) {
 
+        // Validate reset token and update password
         authService.resetPassword(resetToken, request);
 
-        // Delete reset cookie after successful reset
-        ResponseCookie deleteCookie =
-                ResponseCookie.from(RESET_COOKIE, "")
-                        .httpOnly(true)
-                        .secure(cookieSecure)
-                        .sameSite("Lax")
-                        .path("/api/auth/reset-password")
-                        .maxAge(Duration.ZERO)
-                        .build();
+        // Delete reset cookie after successful password reset
+        ResponseCookie deleteCookie = ResponseCookie
+                .from(RESET_COOKIE, "")
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(Duration.ZERO)
+                .build();
 
         servletResponse.addHeader(
                 HttpHeaders.SET_COOKIE,
@@ -143,5 +144,39 @@ log.info("api started:registerFarmer");
         );
     }
 
+//    @PostMapping("/reset-password")
+//    public ResponseEntity<ApiResponse> resetPassword(
+//            @CookieValue(
+//                    name = RESET_COOKIE,
+//                    required = false
+//            ) String resetToken,
+//            @Valid @RequestBody ResetPasswordRequest request,
+//            HttpServletResponse servletResponse) {
+//
+//        authService.resetPassword(resetToken, request);
+//
+//        // Delete reset cookie after successful reset
+//        ResponseCookie deleteCookie =
+//                ResponseCookie.from(RESET_COOKIE, "")
+//                        .httpOnly(true)
+//                        .secure(cookieSecure)
+//                        .sameSite("Lax")
+//                        .path("/api/auth/reset-password")
+//                        .maxAge(Duration.ZERO)
+//                        .build();
+//
+//        servletResponse.addHeader(
+//                HttpHeaders.SET_COOKIE,
+//                deleteCookie.toString()
+//        );
+//
+//        return ResponseEntity.ok(
+//                new ApiResponse(
+//                        true,
+//                        "Password updated successfully."
+//                )
+//        );
+//    }
+//
 
 }
